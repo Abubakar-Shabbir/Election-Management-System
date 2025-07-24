@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Cast Your Vote</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .election-card {
+      background: #f8f9fa;
+      border: 1px solid #ddd;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+    }
+    .vote-btn {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 10px 25px;
+      font-size: 16px;
+      border-radius: 6px;
+      transition: 0.3s;
+    }
+    .vote-btn:hover {
+      background-color: #218838;
+    }
+  </style>
+</head>
+<body class="container mt-4">
+  <h2 class="mb-4">🗳️ Active Elections for {{ voter.name }}</h2>
+
+  {% if elections %}
+    {% for election in elections %}
+      <div class="election-card">
+        <h4>{{ election.title }}</h4>
+        <p><strong>Start:</strong> {{ election.start_time }} | <strong>Duration:</strong> {{ election.duration_minutes }} minutes</p>
+        <form method="get" action="{% url 'cast_vote' election.id %}">
+          <button type="submit" class="vote-btn">Vote Now</button>
+        </form>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>No active elections available at this time.</p>
+  {% endif %}
+</body>
+</html>

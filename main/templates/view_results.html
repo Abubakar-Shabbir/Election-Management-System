@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Election Results Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary-color: #003366;
+      --accent-color: #0055aa;
+      --light-bg: #f4f7fa;
+      --card-bg: #ffffff;
+      --winner-bg: #e8f5e9;
+      --loser-bg: #ffebee;
+      --pending-bg: #f3f3f3;
+    }
+
+    body {
+      background-color: var(--light-bg);
+      font-family: 'Segoe UI', Roboto, sans-serif;
+      color: #333;
+    }
+
+    header {
+      background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+      color: white;
+      padding: 50px 0;
+      text-align: center;
+      margin-bottom: 40px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+
+    .search-filter {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .card-constituency {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      padding: 25px;
+      margin-bottom: 30px;
+      transition: transform 0.2s ease;
+    }
+
+    .card-constituency:hover {
+      transform: scale(1.01);
+    }
+
+    .winner-row {
+      background-color: var(--winner-bg);
+    }
+
+    .loser-row {
+      background-color: var(--loser-bg);
+    }
+
+    .pending-row {
+      background-color: var(--pending-bg);
+    }
+
+    .badge-status {
+      font-size: 0.85rem;
+      padding: 5px 10px;
+      border-radius: 10px;
+    }
+
+    .custom-bar {
+      height: 18px;
+      background-color: #d0e4f5;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    .custom-fill {
+      height: 100%;
+      background-color: #0d6efd;
+      text-align: center;
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 18px;
+    }
+
+    footer {
+      background-color: var(--primary-color);
+      color: white;
+      text-align: center;
+      padding: 20px 0;
+      margin-top: 60px;
+    }
+
+    #backToTop {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: none;
+      z-index: 9999;
+    }
+
+    @media (max-width: 768px) {
+      .search-filter {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Election Results Dashboard</h1>
+  <p class="lead mb-0">Track live election data by constituency and party</p>
+</header>
+
+<main class="container">
+  <div class="search-filter mb-4">
+    <input type="text" class="form-control shadow-sm" placeholder="Search constituency..." id="searchInput">
+    <select class="form-select shadow-sm" id="filterAssembly">
+      <option value="">Filter by Assembly</option>
+      <option value="NA">National Assembly</option>
+      <option value="PA">Provincial Assembly</option>
+    </select>
+  </div>
+
+  {% if results_data %}
+    {% regroup results_data by election as grouped_results %}
+    {% for group in grouped_results %}
+      <div class="mb-5">
+        <h3 class="text-center fw-bold text-dark">{{ group.grouper.title }}</h3>
+        <p class="text-center text-muted">Assembly Type: {{ group.grouper.name }}</p>
+
+        {% for result in group.list %}
+          <div class="card-constituency" data-assembly="{{ result.constituency.assembly }}" data-search="{{ result.constituency.constituency_no }} {{ result.constituency.region }}">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <h5 class="mb-1">Constituency #{{ result.constituency.constituency_no }} - {{ result.constituency.region }}</h5>
+                <small class="text-muted">Assembly: {{ result.constituency.assembly }}</small>
+              </div>
+              <div>
+                {% if result.result_status == "Declared" %}
+                  <span class="badge bg-success badge-status">Declared</span>
+                {% elif result.result_status == "Pending" %}
+                  <span class="badge bg-warning text-dark badge-status">Pending</span>
+                {% else %}
+                  <span class="badge bg-secondary badge-status">Unknown</span>
+                {% endif %}
+              </div>
+            </div>
+
+            {% if result.result_status == "Pending" %}
+              <div class="alert alert-warning text-center py-2">
+                Voting ends on: <strong>{{ result.end_time|date:"Y-m-d H:i" }}</strong>
+              </div>
+            {% endif %}
+
+            <div class="table-responsive">
+              <table class="table table-hover table-bordered align-middle text-center">
+                <thead class="table-light">
+                  <tr>
+                    <th>#</th>
+                    <th>Candidate</th>
+                    <th>Party</th>
+                    <th>Progress</th>
+                    <th>Votes</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for c in result.candidates %}
+                    <tr class="{% if c.status == 'Winner' %}winner-row{% elif c.status == 'Loser' %}loser-row{% else %}pending-row{% endif %}">
+                      <td>{{ forloop.counter }}</td>
+                      <td class="fw-semibold">{{ c.candidate.name }}</td>
+                      <td>{{ c.candidate.party.name }}</td>
+                      <td>
+                        {% widthratio c.votes result.total_votes 100 as percent %}
+                        <div class="custom-bar">
+                          <div class="custom-fill" style="width: {{ percent }}%;">{{ percent }}%</div>
+                        </div>
+                      </td>
+                      <td class="fw-bold">{{ c.votes }}</td>
+                      <td>
+                        {% if c.status == "Winner" %}
+                          <span class="badge bg-success badge-status">Winner</span>
+                        {% elif c.status == "Loser" %}
+                          <span class="badge bg-danger badge-status">Loser</span>
+                        {% else %}
+                          <span class="badge bg-secondary badge-status">Pending</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                  {% empty %}
+                    <tr>
+                      <td colspan="6" class="text-muted">No candidates found.</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="alert alert-info text-center fs-5">
+      No election results available at the moment.
+    </div>
+  {% endif %}
+</main>
+
+<footer>
+  &copy; 2025 Abubakar Shabbir. All rights reserved.
+</footer>
+
+<button id="backToTop" class="btn btn-primary rounded-circle shadow"><strong>↑</strong></button>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  const searchInput = document.getElementById('searchInput');
+  const filterAssembly = document.getElementById('filterAssembly');
+  const cards = document.querySelectorAll('.card-constituency');
+
+  function filterResults() {
+    const search = searchInput.value.toLowerCase();
+    const assembly = filterAssembly.value;
+    cards.forEach(card => {
+      const cardSearch = card.getAttribute('data-search').toLowerCase();
+      const cardAssembly = card.getAttribute('data-assembly');
+      const show = (!search || cardSearch.includes(search)) && (!assembly || cardAssembly === assembly);
+      card.style.display = show ? '' : 'none';
+    });
+  }
+
+  searchInput.addEventListener('input', filterResults);
+  filterAssembly.addEventListener('change', filterResults);
+
+  const backToTop = document.getElementById("backToTop");
+  window.onscroll = () => {
+    backToTop.style.display = window.scrollY > 300 ? "block" : "none";
+  };
+  backToTop.onclick = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+</script>
+
+</body>
+</html>

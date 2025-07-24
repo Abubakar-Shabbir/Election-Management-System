@@ -1,0 +1,15 @@
+<h2>📊 Results for {{ voter.name }}</h2>
+
+<h3>NA Constituency Results</h3>
+<ul>
+  {% for result in na_results %}
+    <li>{{ result.candidate__name }} ({{ result.candidate__party__name }}) - {{ result.total_votes }} votes</li>
+  {% endfor %}
+</ul>
+
+<h3>PA Constituency Results</h3>
+<ul>
+  {% for result in pa_results %}
+    <li>{{ result.candidate__name }} ({{ result.candidate__party__name }}) - {{ result.total_votes }} votes</li>
+  {% endfor %}
+</ul>

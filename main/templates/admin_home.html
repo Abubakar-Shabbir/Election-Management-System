@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard - Voting System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Bootstrap & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .sidebar {
+  height: 100vh;
+  background: #212529;
+  color: white;
+  position: fixed;
+  width: 250px;
+}
+
+.sidebar .nav-link {
+  color: #ced4da;
+  border-radius: 5px;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.sidebar .nav-link:hover {
+  background-color: #495057;
+  color: #ffffff;
+}
+
+.sidebar .nav-link.active {
+  background-color: #0d6efd;
+  color: #ffffff;
+}
+
+    .content {
+      margin-left: 250px;
+      padding: 20px;
+    }
+    .card {
+      border: none;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      border-radius: 10px;
+    }
+    canvas {
+      max-height: 300px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar d-flex flex-column p-3">
+    <h4 class="text-white mb-4"><i class="bi bi-speedometer2 me-2"></i>Admin Panel</h4>
+    <ul class="nav nav-pills flex-column">
+      <li class="nav-item"><a href="/adminpanel/" class="nav-link active"><i class="bi bi-house me-2"></i>Dashboard</a></li>
+      <li class="nav-item"><a href="/adminpanel/add-constituency/" class="nav-link"><i class="bi bi-map me-2"></i>Add Constituency</a></li>
+      <li class="nav-item"><a href="/adminpanel/add-party/" class="nav-link"><i class="bi bi-flag me-2"></i>Add Party</a></li>
+      <li class="nav-item"><a href="/adminpanel/add-candidate/" class="nav-link"><i class="bi bi-person-plus me-2"></i>Add Candidate</a></li>
+      <li class="nav-item"><a href="/adminpanel/view-voters/" class="nav-link"><i class="bi bi-person-lines-fill me-2"></i>View Voters</a></li>
+      <li class="nav-item"><a href="/adminpanel/view-parties/" class="nav-link"><i class="bi bi-people-fill me-2"></i>View Parties</a></li>
+      <li class="nav-item"><a href="/adminpanel/view-candidates/" class="nav-link"><i class="bi bi-person-badge me-2"></i>View Candidates</a></li>
+      <li class="nav-item"><a href="/start-voting/" class="nav-link"><i class="bi bi-toggle-on me-2"></i>Start Voting</a></li>
+      <li class="nav-item"><a href="/adminpanel/view_results/" class="nav-link"><i class="bi bi-bar-chart-line me-2"></i>View Results</a></li>
+      <li class="nav-item"><a href="/adminpanel/create-election/" class="nav-link"><i class="bi bi-calendar-plus me-2"></i>Create Election</a></li>
+      <li class="nav-item mt-auto"><a href="/logout/" class="nav-link text-danger"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+    </ul>
+  </div>
+
+  <!-- Main Content -->
+  <div class="content">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2>Welcome, Admin</h2>
+      <span class="text-muted">Dashboard Overview</span>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="row g-4">
+      <div class="col-md-6 col-xl-3">
+        <div class="card p-3 text-center">
+          <i class="bi bi-person-fill display-5 text-primary"></i>
+          <h5 class="mt-3">Total Voters</h5>
+          <p class="text-muted" id="totalVoters">...</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-xl-3">
+        <div class="card p-3 text-center">
+          <i class="bi bi-person-check-fill display-5 text-success"></i>
+          <h5 class="mt-3">Voted</h5>
+          <p class="text-muted" id="votedCount">...</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-xl-3">
+        <div class="card p-3 text-center">
+          <i class="bi bi-person-x-fill display-5 text-danger"></i>
+          <h5 class="mt-3">Not Voted</h5>
+          <p class="text-muted" id="notVotedCount">...</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-xl-3">
+        <div class="card p-3 text-center">
+          <i class="bi bi-graph-up display-5 text-warning"></i>
+          <h5 class="mt-3">Turnout %</h5>
+          <p class="text-muted" id="turnout">...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row g-4 mt-4">
+      <div class="col-md-6">
+        <div class="card p-4">
+          <h5>Voting Distribution</h5>
+          <canvas id="votePieChart"></canvas>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card p-4">
+          <h5>Votes Per Constituency</h5>
+          <canvas id="barChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dynamic Chart Script -->
+ <!-- ... your other HTML code ... -->
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Your vote stats + chart logic -->
+<script>
+    const totalVoters = {{ total_voters }};
+    const voted = {{ voted_count }};
+    const notVoted = {{ not_voted_count }};
+    const turnoutPercent = ((voted / totalVoters) * 100).toFixed(1);
+
+    document.getElementById('totalVoters').innerText = totalVoters;
+    document.getElementById('votedCount').innerText = voted;
+    document.getElementById('notVotedCount').innerText = notVoted;
+    document.getElementById('turnout').innerText = turnoutPercent + "%";
+
+    // Pie Chart
+    new Chart(document.getElementById('votePieChart'), {
+      type: 'pie',
+      data: {
+        labels: ['Voted', 'Not Voted'],
+        datasets: [{
+          data: [voted, notVoted],
+          backgroundColor: ['#198754', '#dc3545'],
+        }]
+      }
+    });
+
+    // Line Chart: Votes per Constituency
+    new Chart(document.getElementById('barChart'), {
+      type: 'line',
+      data: {
+        labels: {{ constituency_labels|safe }},
+        datasets: [{
+          label: 'Votes per Constituency',
+          data: {{ constituency_votes|safe }},
+          fill: false,
+          borderColor: '#0d6efd',
+          tension: 0.4,
+          pointBackgroundColor: '#0d6efd',
+          pointRadius: 5
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+</script>
+
+</body>
+</html>
+
+</body>
+</html>

@@ -1,0 +1,108 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Voter Panel</title>
+    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f2f4f8;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .navbar {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .hero {
+            background: linear-gradient(120deg, #198754, #157347);
+            color: white;
+            padding: 50px 30px;
+            border-radius: 0 0 30px 30px;
+            text-align: center;
+        }
+        .card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        }
+        .clock {
+            font-weight: 500;
+            font-size: 16px;
+            color: #555;
+        }
+        .logout-btn {
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top">
+  <div class="container">
+    <a class="navbar-brand fw-bold text-success" href="#"><i class="bi bi-box-seam"></i> Election Panel</a>
+    <div class="ms-auto d-flex align-items-center gap-3">
+      <div class="clock" id="liveClock">--:--:--</div>
+      <span class="text-muted"><i class="bi bi-person-circle"></i> {{ voter.name }}</span>
+      <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm logout-btn"><i class="bi bi-box-arrow-right"></i> Logout</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero Section -->
+<div class="hero">
+    <h2 class="display-6 mb-2">Welcome, {{ voter.name }}</h2>
+    <p class="lead">You're eligible to vote in the following elections</p>
+</div>
+
+<!-- Election Cards -->
+<div class="container mt-4">
+    {% if elections %}
+        <div class="row">
+            {% for election in elections %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <h5 class="card-title text-success"><i class="bi bi-check2-circle"></i> {{ election.title }}</h5>
+                            <p class="card-text">
+                                <i class="bi bi-clock-history"></i> Voting closes at:<br>
+                                <strong>{{ election.start_time|add:"%s"|date:"h:i A, d M Y" }}</strong>
+                            </p>
+                            <form method="get" action="{% url 'cast_vote' election.id %}">
+                                <button class="btn btn-success w-100"><i class="bi bi-box-arrow-in-down-left"></i> Cast Your Vote</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info text-center">
+            <i class="bi bi-info-circle-fill"></i> No active elections available at the moment.
+        </div>
+    {% endif %}
+</div>
+
+<!-- Live Clock Script -->
+<script>
+  function updateClock() {
+    const now = new Date();
+    const formatted = now.toLocaleTimeString();
+    document.getElementById("liveClock").textContent = formatted;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+</script>
+
+<!-- Bootstrap Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

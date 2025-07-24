@@ -1,0 +1,180 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cast Your Vote</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+  <link rel="icon" href="https://img.icons8.com/color/48/ballot-box.png" type="image/png">
+
+  <style>
+    body {
+      background-color: #f4f6fa;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .candidate-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+      transition: transform 0.2s ease-in-out, box-shadow 0.3s;
+    }
+
+    .candidate-card:hover {
+      transform: scale(1.02);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.1);
+    }
+
+    .candidate-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .party-logo {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid #ccc;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+    }
+
+    .already-voted {
+      font-weight: 500;
+      font-size: 1rem;
+    }
+
+    .nav-tabs .nav-link.active {
+      background-color: #198754;
+      color: #fff;
+      border: none;
+    }
+
+    .nav-tabs .nav-link {
+      border: none;
+      color: #198754;
+    }
+  </style>
+</head>
+<body class="container py-4">
+
+  <div class="text-center mb-4">
+    <h2 class="text-success">🗳️ Cast Your Vote</h2>
+    <p class="lead">Hello, <strong>{{ voter.name }}</strong> — Election: <strong>{{ election.title }}</strong></p>
+  </div>
+
+  <!-- Tabs -->
+  <ul class="nav nav-tabs justify-content-center mb-4" id="voteTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="na-tab" data-bs-toggle="tab" data-bs-target="#na" type="button" role="tab">🏛️ National Assembly</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="pa-tab" data-bs-toggle="tab" data-bs-target="#pa" type="button" role="tab">🏠 Provincial Assembly</button>
+    </li>
+  </ul>
+
+  <div class="tab-content" id="voteTabsContent">
+
+    <!-- National Assembly Tab -->
+    <div class="tab-pane fade show active" id="na" role="tabpanel">
+      {% if already_voted_na %}
+        <div class="alert alert-warning text-center already-voted">⚠️ You have already cast your vote for National Assembly.</div>
+      {% else %}
+        <form method="post" class="vote-form mb-5">
+          {% csrf_token %}
+          <input type="hidden" name="seat_type" value="NA">
+          {% for c in na_candidates %}
+            <div class="candidate-card">
+              <label class="candidate-header w-100">
+                <input type="radio" name="candidate_cnic" value="{{ c.candidate_cnic }}" required class="form-check-input me-2 mt-1">
+                <div>
+                  <h5 class="mb-1">{{ c.name }}</h5>
+                  <p class="text-muted mb-0">{{ c.party.name }}</p>
+                </div>
+              </label>
+            </div>
+          {% endfor %}
+          <button type="submit" class="btn btn-success submit-btn">✅ Submit Vote for NA</button>
+        </form>
+      {% endif %}
+    </div>
+
+    <!-- Provincial Assembly Tab -->
+    <div class="tab-pane fade" id="pa" role="tabpanel">
+      {% if already_voted_pa %}
+        <div class="alert alert-warning text-center already-voted">⚠️ You have already cast your vote for Provincial Assembly.</div>
+      {% else %}
+        <form method="post" class="vote-form mb-5">
+          {% csrf_token %}
+          <input type="hidden" name="seat_type" value="PA">
+          {% for c in pa_candidates %}
+            <div class="candidate-card">
+              <label class="candidate-header w-100">
+                <input type="radio" name="candidate_cnic" value="{{ c.candidate_cnic }}" required class="form-check-input me-2 mt-1">
+                <div>
+                  <h5 class="mb-1">{{ c.name }}</h5>
+                  <p class="text-muted mb-0">{{ c.party.name }}</p>
+                </div>
+              </label>
+            </div>
+          {% endfor %}
+          <button type="submit" class="btn btn-success submit-btn">✅ Submit Vote for PA</button>
+        </form>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <!-- Bootstrap Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Form confirmation & SweetAlert2 trigger -->
+  <script>
+    document.querySelectorAll('.vote-form').forEach(form => {
+      form.addEventListener('submit', function (e) {
+        const confirmed = confirm("⚠️ Are you sure you want to cast your vote? You cannot change it later.");
+        if (!confirmed) {
+          e.preventDefault();
+        }
+      });
+    });
+  </script>
+
+  <!-- Django messages with SweetAlert2 -->
+  {% if messages %}
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      {% for message in messages %}
+        Swal.fire({
+          icon: "{% if message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% elif message.tags == 'error' %}error{% else %}info{% endif %}",
+          title: "{{ message|escapejs }}",
+          confirmButtonColor: '#198754',
+          timer: 4500,
+          timerProgressBar: true,
+          showConfirmButton: true
+        });
+      {% endfor %}
+    });
+  </script>
+  {% endif %}
+</body>
+</html>
