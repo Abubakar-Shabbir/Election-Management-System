@@ -1,6 +1,6 @@
 
 import os
-import dj_database_url
+
 """
 
 Django settings for Electionsystem project.
@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-)t9hvi1wzgy@ozu2h61&c_s77ii%g8i_!waxyslrwqjwea_2so
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 
-ALLOWED_HOSTS = ['127.0.0.1','192.168.1.105' , 'localhost']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 
 print("ALLOWED_HOSTS =", ALLOWED_HOSTS)
@@ -83,15 +83,18 @@ WSGI_APPLICATION = 'Electionsystem.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-import dj_database_url  # isko file ke top pe likhna hoga
 
 DATABASES = {
-    'default': dj_database_url.config(
-        default='mysql://root:Bakar.3512@localhost:3306/electionsystem',
-        conn_max_age=600,
-        ssl_require=False  # Agar Render ka db SSL maangta hai tu True karein
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'electionsystem',
+        'USER': 'root',
+        'PASSWORD': 'password',
+        'HOST': 'localhost',
+        'PORT': '3306',
+    }
 }
+
 
 
 # Password validation
@@ -150,6 +153,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = ''  # apna Gmail ya SMTP mail
+EMAIL_HOST_USER = ''  #write your gmail here
 EMAIL_HOST_PASSWORD = ''  # Gmail app password (not your Gmail password)
-DEFAULT_FROM_EMAIL = 'Election System <abubakarshabbir64@gmail.com>'
+DEFAULT_FROM_EMAIL = 'Election System <abc@gmail.com>'
