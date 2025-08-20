@@ -13,9 +13,15 @@ The Election Management System (EMS) is a web app built with Django, MySQL, and 
 
 ---
 
-##  Screenshots
+## Screenshots
 
-*(Add screenshots of login, admin panel, voting panel, and results page here)*
+
+### Admin Panel
+![Admin Panel](Screenshots/Admin.PNG)
+
+### Voter Panel
+![Voter Panel](Screenshots/Voter%20Portal.PNG)
+
 
 ---
 
