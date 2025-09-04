@@ -78,15 +78,7 @@ python manage.py migrate
 ```bash
 python manage.py runserver
 ```
-5. **Configure Email OTP in settings.py:**
-```bash
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'your-app-email@gmail.com'
-EMAIL_HOST_PASSWORD = 'your-app-password'  # Use App Password
-```
+
 
 ##  Usage
 
@@ -106,7 +98,6 @@ EMAIL_HOST_PASSWORD = 'your-app-password'  # Use App Password
 - **Voter Capabilities (via Website):**
   - Register/login.
   - Cast vote in elections they are eligible for.
-  - View results once available.
 
 
 
